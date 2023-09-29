@@ -1,0 +1,491 @@
+local library = loadstring(game:HttpGet(('https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wall%20v3')))()
+
+local w = library:CreateWindow("Slender")
+
+local a = library:CreateWindow("Citizen")
+
+local b = w:CreateFolder("Expand This")
+
+b:Button("Noclip",function()
+    local Noclip = nil
+	local Clip = nil
+	
+	function noclip()
+		Clip = false
+		local function Nocl()
+			if Clip == false and game.Players.LocalPlayer.Character ~= nil then
+				for _,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+					if v:IsA('BasePart') and v.CanCollide and v.Name ~= floatName then
+						v.CanCollide = false
+					end
+				end
+			end
+			wait(0.21)
+		end
+		Noclip = game:GetService('RunService').Stepped:Connect(Nocl)
+	end
+	
+	function clip()
+		if Noclip then Noclip:Disconnect() end
+		Clip = true
+	end
+	
+	noclip()
+end)
+
+b:Button("Fly!",function()
+	local Settings = {
+		
+		Speed = 5,
+		SprintSpeed = 30,
+		ToggleKey = Enum.KeyCode.LeftAlt,
+		SprintKey = Enum.KeyCode.LeftControl,
+		
+		ForwardKey = Enum.KeyCode.W,
+		LeftKey = Enum.KeyCode.A,
+		BackwardKey = Enum.KeyCode.S,
+		RightKey = Enum.KeyCode.D,
+		UpKey = Enum.KeyCode.E,
+		DownKey = Enum.KeyCode.Q,
+		
+	}
+	
+	local Screen = Instance.new("ScreenGui",game.CoreGui)
+	local Distance = Instance.new("TextLabel",Screen)
+	Distance.BackgroundTransparency = 1
+	Distance.Size = UDim2.new(0,10,0,10)
+	Distance.ZIndex = 2
+	Distance.Text = "0"
+	Distance.TextStrokeTransparency = .5
+	Distance.TextSize = 20
+	Distance.TextStrokeColor3 = Color3.fromRGB(33, 33, 33)
+	Distance.Font = Enum.Font.Gotham
+	Distance.TextColor3 = Color3.new(1,1,1)
+	Distance.TextXAlignment = Enum.TextXAlignment.Left
+	Distance.TextYAlignment = Enum.TextYAlignment.Top
+	
+	
+	local Mouse = game.Players.LocalPlayer:GetMouse()
+	local Direction = Vector3.new(0,0,0)
+	local InterpolatedDir = Direction
+	local Tilt = 0
+	local InterpolatedTilt = Tilt
+	local RunService = game:GetService("RunService")
+	local Toggled = false
+	local Sprinting = false
+	local CameraPos = game.Workspace.CurrentCamera.CFrame.Position
+	
+	pcall(function()
+		game.Players.LocalPlayer.DevCameraOcclusionMode = Enum.DevCameraOcclusionMode.Invisicam	
+	end)
+	
+	function Lerp(a, b, t)
+	    return a + (b - a) * t
+	end
+	
+	local LastPos = nil
+	
+	function KeyHandler(actionName, userInputState)
+		if true and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+			if actionName == "Toggle" and userInputState == Enum.UserInputState.Begin then
+				Toggled = not Toggled
+				if Toggled then
+					LastPos = game.Players.LocalPlayer.Character.HumanoidRootPart.Position
+					game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = true
+					game.Players.LocalPlayer.Character.Humanoid.PlatformStand = true 
+				else
+					LastPos = nil
+					game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
+					game.Players.LocalPlayer.Character.HumanoidRootPart.Anchored = false
+				end
+			elseif actionName == "Forward" then
+				Tilt = userInputState == Enum.UserInputState.Begin and -20 or 0
+				Direction = Vector3.new(Direction.x,Direction.y,userInputState == Enum.UserInputState.Begin and -1 or 0)
+			elseif actionName == "Left" then
+				Direction = Vector3.new(userInputState == Enum.UserInputState.Begin and -1 or 0,Direction.y,Direction.z)
+			elseif actionName == "Backward" then
+				Tilt = userInputState == Enum.UserInputState.Begin and 20 or 0
+				Direction = Vector3.new(Direction.x,Direction.y,userInputState == Enum.UserInputState.Begin and 1 or 0)
+			elseif actionName == "Right" then
+				Direction = Vector3.new(userInputState == Enum.UserInputState.Begin and 1 or 0,Direction.y,Direction.z)
+			elseif actionName == "Up" then
+				Direction = Vector3.new(Direction.x,userInputState == Enum.UserInputState.Begin and 1 or 0,Direction.z)
+			elseif actionName == "Down" then
+				Direction = Vector3.new(Direction.x,userInputState == Enum.UserInputState.Begin and -1 or 0,Direction.z)
+			elseif actionName == "Sprint" then
+				Sprinting = userInputState == Enum.UserInputState.Begin
+			end
+		end
+	end
+	
+	
+	
+	game:GetService("UserInputService").InputBegan:connect(function(inputObject, gameProcessedEvent)
+		
+		if inputObject.KeyCode == Settings.ToggleKey then
+			KeyHandler("Toggle", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.ForwardKey then
+			KeyHandler("Forward", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.LeftKey then
+			KeyHandler("Left", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.BackwardKey then
+			KeyHandler("Backward", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.RightKey then
+			KeyHandler("Right", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.UpKey then	
+			KeyHandler("Up", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.DownKey then
+			KeyHandler("Down", Enum.UserInputState.Begin, inputObject)
+		elseif inputObject.KeyCode == Settings.SprintKey then
+			KeyHandler("Sprint", Enum.UserInputState.Begin, inputObject)
+		end
+		
+		
+	end)
+	
+	
+	game:GetService("UserInputService").InputEnded:connect(function(inputObject, gameProcessedEvent)
+		
+		if inputObject.KeyCode == Settings.ToggleKey then
+			KeyHandler("Toggle", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.ForwardKey then
+			KeyHandler("Forward", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.LeftKey then
+			KeyHandler("Left", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.BackwardKey then
+			KeyHandler("Backward", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.RightKey then
+			KeyHandler("Right", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.UpKey then	
+			KeyHandler("Up", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.DownKey then
+			KeyHandler("Down", Enum.UserInputState.End, inputObject)
+		elseif inputObject.KeyCode == Settings.SprintKey then
+			KeyHandler("Sprint", Enum.UserInputState.End, inputObject)
+		end
+		
+		
+	end)
+	
+	
+	RunService.RenderStepped:Connect(function()
+		if Toggled and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")  then
+			for i,v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.Velocity = Vector3.new(0,0,0)
+				end
+			end
+			local RootPart = game.Players.LocalPlayer.Character.HumanoidRootPart
+			if LastPos then
+				Distance.Text = math.floor((LastPos-RootPart.Position).Magnitude+.5)
+				if (LastPos-RootPart.Position).Magnitude >= 350 then
+					Distance.TextColor3 = Color3.new(1,0,0)
+				else
+					Distance.TextColor3 = Color3.new(1,1,1)	
+				end
+			else
+				Distance.TextColor3 = Color3.new(1,1,1)
+				Distance.Text = 0
+			end
+			InterpolatedDir = InterpolatedDir:Lerp((Direction * (Sprinting and Settings.SprintSpeed or Settings.Speed)),.2)
+			InterpolatedTilt = Lerp(InterpolatedTilt ,Tilt* (Sprinting and 2 or 1),Tilt == 0 and .2 or .1)
+			RootPart.CFrame = RootPart.CFrame:Lerp(CFrame.new(RootPart.Position,RootPart.Position + Mouse.UnitRay.Direction) * CFrame.Angles(0,math.rad(00),0) * CFrame.new(InterpolatedDir)  * CFrame.Angles(math.rad(InterpolatedTilt),0,0),.2)
+		else
+			Distance.TextColor3 = Color3.new(1,1,1)
+			Distance.Text = 0
+		end	
+	end)
+
+end)
+
+b:Button("Ctrl Delete",function()
+    pcall(loadstring(game:HttpGet("https://pastebin.com/raw/KGYKmYtW")))
+
+end)
+
+b:Slider("Walkspeed",{
+    min = 16;
+    max = 50;
+    precise = false;
+},function(value)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+end)
+
+local q = a:CreateFolder("Expand This")
+
+q:Button("Shortcut-Function",function()
+	local ScreenGui = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local info = Instance.new("TextButton")
+	local credit = Instance.new("TextLabel")
+	local key = Instance.new("TextLabel")
+	local key_2 = Instance.new("TextLabel")
+	local key_3 = Instance.new("TextLabel")
+	local key_4 = Instance.new("TextLabel")
+	local key_5 = Instance.new("TextLabel")
+	
+	ScreenGui.Parent = game.Players.LocalPlayer.PlayerGui
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ScreenGui.ResetOnSpawn = false
+	
+	Frame.Parent = ScreenGui
+	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Frame.BackgroundTransparency = 1.000
+	Frame.Position = UDim2.new(0, 10, 0.264150947, 0)
+	Frame.Size = UDim2.new(0, 230, 0, 250)
+	
+	info.Name = "info"
+	info.Parent = Frame
+	info.BackgroundColor3 = Color3.fromRGB(130, 130, 0)
+	info.BackgroundTransparency = 0.300
+	info.BorderSizePixel = 0
+	info.Size = UDim2.new(0, 230, 0, 20)
+	info.Font = Enum.Font.SourceSans
+	info.Text = "Stop it Slender Keys"
+	info.TextColor3 = Color3.fromRGB(255, 255, 255)
+	info.TextScaled = true
+	info.TextSize = 14.000
+	info.TextStrokeTransparency = 0.000
+	info.TextWrapped = true
+	info.TextXAlignment = Enum.TextXAlignment.Left
+	
+	credit.Name = "credit"
+	credit.Parent = Frame
+	credit.BackgroundColor3 = Color3.fromRGB(130, 130, 0)
+	credit.BackgroundTransparency = 0.300
+	credit.BorderSizePixel = 0
+	credit.Position = UDim2.new(0, 0, 0.920000017, 0)
+	credit.Size = UDim2.new(0, 230, 0, 20)
+	credit.Font = Enum.Font.SourceSans
+	credit.Text = "Created by: SKEPPY0_0MAN"
+	credit.TextColor3 = Color3.fromRGB(255, 255, 255)
+	credit.TextScaled = true
+	credit.TextSize = 18.000
+	credit.TextStrokeTransparency = 0.000
+	credit.TextWrapped = true
+	credit.TextXAlignment = Enum.TextXAlignment.Left
+	
+	key.Name = "key"
+	key.Parent = Frame
+	key.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	key.BackgroundTransparency = 1.000
+	key.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	key.Position = UDim2.new(0, 0, 0.180000007, 0)
+	key.Size = UDim2.new(0, 230, 0, 20)
+	key.Font = Enum.Font.SourceSans
+	key.Text = "Z : Show All Page"
+	key.TextColor3 = Color3.fromRGB(0, 85, 0)
+	key.TextScaled = true
+	key.TextSize = 14.000
+	key.TextStrokeTransparency = 0.900
+	key.TextWrapped = true
+	key.TextXAlignment = Enum.TextXAlignment.Left
+	
+	key_2.Name = "key"
+	key_2.Parent = Frame
+	key_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	key_2.BackgroundTransparency = 1.000
+	key_2.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	key_2.Position = UDim2.new(0, 0, 0.319999993, 0)
+	key_2.Size = UDim2.new(0, 230, 0, 20)
+	key_2.Font = Enum.Font.SourceSans
+	key_2.Text = "R : TP to Next Page"
+	key_2.TextColor3 = Color3.fromRGB(0, 85, 0)
+	key_2.TextScaled = true
+	key_2.TextSize = 14.000
+	key_2.TextStrokeTransparency = 0.900
+	key_2.TextWrapped = true
+	key_2.TextXAlignment = Enum.TextXAlignment.Left
+	
+	key_3.Name = "key"
+	key_3.Parent = Frame
+	key_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	key_3.BackgroundTransparency = 1.000
+	key_3.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	key_3.Position = UDim2.new(0, 0, 0.460000008, 0)
+	key_3.Size = UDim2.new(0, 230, 0, 20)
+	key_3.Font = Enum.Font.SourceSans
+	key_3.Text = "X : TP to OFF Generators"
+	key_3.TextColor3 = Color3.fromRGB(0, 85, 0)
+	key_3.TextScaled = true
+	key_3.TextSize = 14.000
+	key_3.TextStrokeTransparency = 0.900
+	key_3.TextWrapped = true
+	key_3.TextXAlignment = Enum.TextXAlignment.Left
+	
+	key_4.Name = "key"
+	key_4.Parent = Frame
+	key_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	key_4.BackgroundTransparency = 1.000
+	key_4.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	key_4.Position = UDim2.new(0, 0, 0.600000024, 0)
+	key_4.Size = UDim2.new(0, 230, 0, 20)
+	key_4.Font = Enum.Font.SourceSans
+	key_4.Text = "T : TP to Next Page in Locked Zone"
+	key_4.TextColor3 = Color3.fromRGB(0, 85, 0)
+	key_4.TextScaled = true
+	key_4.TextSize = 14.000
+	key_4.TextStrokeTransparency = 0.900
+	key_4.TextWrapped = true
+	key_4.TextXAlignment = Enum.TextXAlignment.Left
+	
+	key_5.Name = "key"
+	key_5.Parent = Frame
+	key_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	key_5.BackgroundTransparency = 1.000
+	key_5.BorderColor3 = Color3.fromRGB(27, 42, 53)
+	key_5.Position = UDim2.new(0, 0, 0.74000001, 0)
+	key_5.Size = UDim2.new(0, 230, 0, 20)
+	key_5.Font = Enum.Font.SourceSans
+	key_5.Text = "~ : Confuse the Slender (Grab you)"
+	key_5.TextColor3 = Color3.fromRGB(0, 85, 0)
+	key_5.TextScaled = true
+	key_5.TextSize = 14.000
+	key_5.TextStrokeTransparency = 0.900
+	key_5.TextWrapped = true
+	key_5.TextXAlignment = Enum.TextXAlignment.Left
+	
+	local function one()
+		local script = Instance.new('LocalScript', key)
+	
+		local InS = game:GetService("UserInputService")
+		
+		local function createGuiPages(parent)
+			if parent.Transparency == 0 then
+				local BGui = Instance.new("BillboardGui")
+				BGui.Parent = parent
+				BGui.AlwaysOnTop = true
+				BGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+				BGui.StudsOffset = Vector3.new(0, 3, 0)
+				BGui.Size = UDim2.new(5, 0, 1.5, 0)
+		
+				local text = Instance.new("TextLabel")
+				text.Parent = BGui
+				text.Text = "Page"
+				text.TextScaled = true
+				text.BackgroundTransparency = 1
+				text.Size = UDim2.new(1, 0, 1, 0)
+				text.TextColor3 = Color3.fromRGB(255, 255, 255)
+			else
+			end
+		end
+		
+		InS.InputBegan:Connect(function(input, GPE)
+			if input.KeyCode == Enum.KeyCode.Z then
+				if game.Workspace.MAP.Pages ~= nil and game.Workspace.MAP.HPageSpawns ~= nil then
+					local model1 = game.Workspace.MAP.Pages
+					for _, v in pairs(model1:GetChildren()) do
+						createGuiPages(v)
+						v.Changed:Connect(function()
+							if v.Transparency == 1 then
+								local BGui = v.BillboardGui
+								BGui:Destroy()
+							end
+						end)
+					end
+					
+					local model2 = game.Workspace.MAP.HPageSpawns
+					for _, v in pairs(model2:GetChildren()) do
+						createGuiPages(v)
+						v.Changed:Connect(function()
+							if v.Transparency == 1 then
+								local BGui = v.BillboardGui
+								BGui:Destroy()
+							end
+						end)
+					end
+				end
+			end
+		end)
+	end
+	coroutine.wrap(one)()
+	local function two()
+		local script = Instance.new('LocalScript', key_2)
+	
+		local Player = game.Players.LocalPlayer
+		local Mouse = Player:GetMouse()
+		
+		local function TeleportToPage()
+			local Char = Player.Character
+			local Map = game.Workspace.MAP
+			local Pages = Map.Pages:GetChildren()
+			for cat, dog in pairs(Pages)do
+				if dog:IsA("Part") and dog.Transparency == 0 then
+					Char.HumanoidRootPart.CFrame = dog.CFrame + (dog.CFrame.lookVector*3)
+				end
+			end
+		end
+		
+		Mouse.KeyDown:Connect(function(Key)
+			if Key == "r" then
+				TeleportToPage()
+			end
+		end)
+	end
+	coroutine.wrap(two)()
+	local function three()
+		local script = Instance.new('LocalScript', key_3)
+	
+		local Player = game.Players.LocalPlayer
+		local Mouse = Player:GetMouse()
+		
+		local function TeleportToGen()
+			loadstring(game:HttpGet('https://raw.githubusercontent.com/creepstu/friendly-garbanzo/main/source'))()
+		end
+		
+		Mouse.KeyDown:Connect(function(Key)
+			if Key == "x" then
+				TeleportToGen()
+			end
+		end)
+	end
+	coroutine.wrap(three)()
+	local function four()
+		local script = Instance.new('LocalScript', key_4)
+	
+		local Player = game.Players.LocalPlayer
+		local Mouse = Player:GetMouse()
+		
+		local function TeleportToHPageSpawn()
+			local Char = Player.Character
+			local Map = game.Workspace.MAP
+			local Pages = Map.HPageSpawns:GetChildren()
+			for cat, dog in pairs(Pages)do
+				if dog:IsA("Part") and dog.Transparency == 0 then
+					Char.HumanoidRootPart.CFrame = dog.CFrame + (dog.CFrame.lookVector*3)
+				end
+			end
+		end
+		
+		Mouse.KeyDown:Connect(function(Key)
+			if Key == "t" then
+				TeleportToHPageSpawn()
+			end
+		end)
+	end
+	coroutine.wrap(four)()
+	local function five()
+		local script = Instance.new('LocalScript', key_5)
+	
+		local InS = game:GetService("UserInputService")
+		
+		local function scrip()
+			game:GetService("ReplicatedStorage").Remotes.ImGrabbed:FireServer()
+		end
+		
+		InS.InputBegan:Connect(function(input, GPE)
+			if input.KeyCode == Enum.KeyCode.Tilde then
+				scrip()
+			end
+		end)
+	end
+	coroutine.wrap(five)()
+	local function last()
+		local script = Instance.new('LocalScript', info)
+		
+		script.Parent.MouseButton1Click:Connect(function()
+			script.Parent.Parent.Parent:Destroy()
+		end)
+	end
+	coroutine.wrap(last)()
+end)
